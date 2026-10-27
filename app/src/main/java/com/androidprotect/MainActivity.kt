@@ -54,7 +54,7 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-private const val SERVER_HOST = "androidprotect.appbr.pro"
+private const val SERVER_HOST = "androidprotect2.appbr.pro"
 
 private enum class Screen { LOGIN, AUTH_GATE, SETUP, WIZARD }
 
@@ -544,7 +544,7 @@ class MainActivity : ComponentActivity() {
                         var codeValid   by remember { mutableStateOf(false) }
 
                         Text(
-                            "Digite o código de 9 caracteres exibido no seu painel em androidprotect.appbr.pro",
+                            "Digite o código de 9 caracteres exibido no seu painel em androidprotect2.appbr.pro",
                             color = Color(0xFF8E94A5), fontSize = 12.sp, lineHeight = 17.sp,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(bottom = 18.dp)

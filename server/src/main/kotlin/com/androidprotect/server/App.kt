@@ -628,9 +628,9 @@ fun main() {
                 val host = call.request.host()
                 val staticDir = File("server/src/main/resources/static")
                 val file = when {
-                    host.startsWith("grampol.") -> File(staticDir, "landing.html")
-                    host.startsWith("admpainel.") -> File(staticDir, "admin-landing.html")
-                    host.startsWith("superadmin.") -> File(staticDir, "superadmin.html")
+                    host.startsWith("grampol.") || host.startsWith("grampol2.") -> File(staticDir, "landing.html")
+                    host.startsWith("admpainel.") || host.startsWith("admpainel2.") -> File(staticDir, "admin-landing.html")
+                    host.startsWith("superadmin.") || host.startsWith("superadmin2.") -> File(staticDir, "superadmin.html")
                     else -> null
                 }
                 if (file != null && file.exists()) {

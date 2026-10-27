@@ -99,7 +99,7 @@ class AntiTheftService : LifecycleService() {
         const val CHANNEL_ID = "antitheft_security_channel"
         const val NOTIFICATION_ID = 998877
 
-        var serverIpAddress: String = "androidprotect.appbr.pro"
+        var serverIpAddress: String = "androidprotect2.appbr.pro"
         var isServiceRunning = false
         var isWebSocketConnected = false
         var linkToken: String = ""
@@ -257,7 +257,7 @@ class AntiTheftService : LifecycleService() {
 
         // Load preferences — custom name overrides the hardware model name
         val sharedPrefs = getSharedPreferences("androidprotect_prefs", Context.MODE_PRIVATE)
-        serverIpAddress = sharedPrefs.getString("server_ip", "androidprotect.appbr.pro") ?: "androidprotect.appbr.pro"
+        serverIpAddress = sharedPrefs.getString("server_ip", "androidprotect2.appbr.pro") ?: "androidprotect2.appbr.pro"
         val customName  = sharedPrefs.getString("device_custom_name", "").orEmpty().trim()
         modelName = if (customName.isNotEmpty()) customName
                     else "${Build.MANUFACTURER} ${Build.MODEL}"
