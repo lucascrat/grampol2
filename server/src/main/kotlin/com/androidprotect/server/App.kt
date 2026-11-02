@@ -2946,6 +2946,22 @@ fun main() {
             subscriptionRoutes()
             superAdminRoutes()
 
+            // ── APK downloads: sem cache ──────────────────────────────────────
+            // Garante que a CDN (Cloudflare) e o navegador nunca sirvam uma
+            // versão antiga do APK — antes, o max-age=14400 padrão fazia o site
+            // entregar builds antigos por até 4h após cada deploy.
+            get("/downloads/{fileName}") {
+                val name = call.parameters["fileName"] ?: return@get
+                if (!name.endsWith(".apk")) return@get
+                val f = File("server/src/main/resources/static/downloads/$name")
+                if (f.exists()) {
+                    call.response.headers.append("Cache-Control", "no-store, no-cache, must-revalidate")
+                    call.respondFile(f)
+                } else {
+                    call.respond(io.ktor.http.HttpStatusCode.NotFound)
+                }
+            }
+
             // Serve static dashboard files (last — more specific routes match first)
             staticFiles("/", File("server/src/main/resources/static"), index = "index.html")
         }
