@@ -1,15 +1,14 @@
 name: Build & Deploy APK
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'app/**'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - 'gradle/**'
-      - 'gradle.properties'
-  workflow_dispatch:   # permite rodar manualmente pelo GitHub UI
+#  O build automatizado está desativado até o secret KEYSTORE_BASE64 e as
+#  senhas de assinatura serem corrigidos no GitHub (o CI falhava no
+#  assembleRelease por causa da assinatura). O APK de produção agora é gerado
+#  localmente com o keystore em Desktop\GRAMPOL\release-keystore\protect.keystore
+#  e commitado direto em server/src/main/resources/static/downloads/protect.apk.
+#  Depois do redeploy do Coolify o site serve o APK novo.
+#  Quando os secrets forem corrigidos, volte o trigger push e mantenha o dispatch:
+  workflow_dispatch:   # roda manualmente pelo GitHub UI
 
 jobs:
   build:
