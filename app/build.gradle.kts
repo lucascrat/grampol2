@@ -21,8 +21,8 @@ android {
         applicationId = "com.androidprotect"
         minSdk = 21                                    // Android 5.0 — cobre ~99% dos dispositivos
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.3.1"
+        versionCode = 6
+        versionName = "1.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
